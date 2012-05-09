@@ -1,0 +1,40 @@
+#! /usr/bin/env python
+import urlparse
+import argparse
+import sys
+from collections import OrderedDict
+
+parser = argparse.ArgumentParser("split urls by part")
+
+parts = OrderedDict([
+    ('scheme', 'URL scheme specifier'),
+    ('hostname', 'Host name (lower case)'),
+    ('port', 'Port number as integer), if present'),
+    ('netloc', 'Network location part'),
+    ('path', 'Hierarchical path'),
+    ('params', 'Parameters for last path element'),
+    ('query', 'Query component'),
+    ('fragment', 'Fragment identifier'),
+    ('username', 'User name'),
+    ('password', 'Password'),
+])
+
+for flag, help_text in parts.items():
+    parser.add_argument("--{}".format(flag), help=help_text, action="store_true")
+
+args = parser.parse_args()
+
+for line in sys.stdin:
+    try:
+        url = urlparse.urlparse(line.strip())
+    except ValueError:
+        continue
+
+    def present(flag):
+        return getattr(args, flag) and getattr(url, flag)
+
+    output = [unicode(getattr(url, flag)) for flag in parts if present(flag)]
+
+    if output:
+        print "\t".join(output)
+
